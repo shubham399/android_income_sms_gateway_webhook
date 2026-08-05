@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private ListAdapter listAdapter;
 
     private static final int PERMISSION_CODE = 0;
+    private static final int BACKFILL_PERMISSION_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        // Backfill needs READ_SMS, which is separate from the RECEIVE_SMS flow
+        // that gates the main list. Denial just cancels the backfill.
+        if (requestCode == BACKFILL_PERMISSION_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (!permissions[i].equals(Manifest.permission.READ_SMS)) {
+                    continue;
+                }
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    startBackfill();
+                } else {
+                    Toast.makeText(this, R.string.backfill_permission_needed, Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            return;
+        }
+
         if (requestCode != PERMISSION_CODE) {
             return;
         }
@@ -132,6 +150,22 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
+        if (id == R.id.action_bar_activity_log) {
+            startActivity(new Intent(this, ActivityLogActivity.class));
+            return true;
+        }
+
+        if (id == R.id.action_bar_backfill) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_SMS}, BACKFILL_PERMISSION_CODE);
+            } else {
+                startBackfill();
+            }
+            return true;
+        }
+
         if (id == R.id.action_bar_retry_failed) {
             int count = FailedMessage.getCount(this);
             FailedMessage.retryAll(this);
@@ -189,6 +223,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Confirms with the user (a full inbox can generate many requests), then
+    // kicks off the backfill in the background via WorkManager.
+    private void startBackfill() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.backfill_confirm_title);
+        builder.setMessage(R.string.backfill_confirm_message);
+        builder.setPositiveButton(R.string.btn_start, (dialog, which) -> {
+            BackfillWorker.enqueue(this);
+            Toast.makeText(this, R.string.backfill_started, Toast.LENGTH_LONG).show();
+        });
+        builder.setNegativeButton(R.string.btn_cancel, null);
+        builder.show();
     }
 
     private void showList() {

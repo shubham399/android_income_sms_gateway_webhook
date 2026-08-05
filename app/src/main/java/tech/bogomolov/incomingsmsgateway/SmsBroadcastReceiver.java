@@ -47,31 +47,15 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
+        int slotId = this.detectSim(bundle) + 1;
+        if (slotId < 0) {
+            slotId = 0;
+        }
+        String slotName = slotId > 0 ? "sim" + slotId : "undetected";
+
         for (ForwardingConfig config : configs) {
-            if (!matchesSender(config, sender, asterisk)) {
+            if (!matchesConfig(config, sender, asterisk, content.toString(), slotId)) {
                 continue;
-            }
-
-            if (!config.getIsSmsEnabled()) {
-                continue;
-            }
-
-            if (!matchesFilter(config.getSmsFilter(), content.toString())) {
-                continue;
-            }
-
-            int slotId = this.detectSim(bundle) + 1;
-            String slotName = "undetected";
-            if (slotId < 0) {
-                slotId = 0;
-            }
-
-            if (config.getSimSlot() > 0 && config.getSimSlot() != slotId) {
-                continue;
-            }
-
-            if (slotId > 0) {
-                slotName = "sim" + slotId;
             }
 
             this.callWebHook(config, sender, slotName, content.toString(), messages[0].getTimestampMillis());
@@ -81,9 +65,20 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     protected void callWebHook(ForwardingConfig config, String sender, String slotName,
                                String content, long timeStamp) {
 
+        ActivityLog.log(this.context, config.getKey(), ActivityLog.EVENT_QUEUED, sender, null);
+        RequestWorker.enqueue(this.context, buildWebHookData(config, sender, slotName, content, timeStamp));
+    }
+
+    // Builds the worker input for one dispatch. Shared by the live SMS path
+    // ({@link #callWebHook}) and the backfill path ({@link BackfillWorker}) so the
+    // two can never drift apart. Carries the rule key and sender so
+    // {@link RequestWorker} can record the outcome in the activity log.
+    static Data buildWebHookData(ForwardingConfig config, String sender, String slotName,
+                                 String content, long timeStamp) {
+
         String message = config.prepareMessage(sender, content, slotName, timeStamp);
 
-        Data data = new Data.Builder()
+        return new Data.Builder()
                 .putString(RequestWorker.DATA_URL, config.getUrl())
                 .putString(RequestWorker.DATA_TEXT, message)
                 .putString(RequestWorker.DATA_HEADERS, config.getHeaders())
@@ -94,9 +89,29 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 .putString(RequestWorker.DATA_SIGN_HMAC_SHA256_SECRET, config.getSignHmacSha256Secret())
                 .putBoolean(RequestWorker.DATA_STORE_FAILED, config.getStoreFailed())
                 .putBoolean(RequestWorker.DATA_LOCAL_MODE, config.getLocalMode())
+                .putString(RequestWorker.DATA_CONFIG_KEY, config.getKey())
+                .putString(RequestWorker.DATA_SENDER, sender)
                 .build();
+    }
 
-        RequestWorker.enqueue(this.context, data);
+    // Full per-config match used both by onReceive (live SMS, SIM detected from
+    // the bundle) and BackfillWorker (SIM detected from the provider, 0 when
+    // unknown). Sender/enabled/filter checks read only the config.
+    static boolean matchesConfig(ForwardingConfig config, String sender, String asterisk,
+                                 String content, int slotId) {
+        if (!matchesSender(config, sender, asterisk)) {
+            return false;
+        }
+        if (!config.getIsSmsEnabled()) {
+            return false;
+        }
+        if (!matchesFilter(config.getSmsFilter(), content)) {
+            return false;
+        }
+        if (config.getSimSlot() > 0 && config.getSimSlot() != slotId) {
+            return false;
+        }
+        return true;
     }
 
     // Per-config sender match. The asterisk wildcard always means "any sender"

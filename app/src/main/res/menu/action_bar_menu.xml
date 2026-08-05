@@ -17,4 +17,14 @@
         android:title="@string/menu_syslog"
         app:showAsAction="never"
         />
+    <item
+        android:id="@+id/action_bar_activity_log"
+        android:title="@string/menu_activity_log"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_bar_backfill"
+        android:title="@string/menu_backfill_sms"
+        app:showAsAction="never"
+        />
 </menu>

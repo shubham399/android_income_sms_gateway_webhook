@@ -114,11 +114,16 @@ public class FailedMessage {
         json.put(RequestWorker.DATA_SIGN_HMAC_SHA256_SECRET, data.getString(RequestWorker.DATA_SIGN_HMAC_SHA256_SECRET));
         json.put(RequestWorker.DATA_STORE_FAILED, data.getBoolean(RequestWorker.DATA_STORE_FAILED, false));
         json.put(RequestWorker.DATA_LOCAL_MODE, data.getBoolean(RequestWorker.DATA_LOCAL_MODE, false));
+        // Rule identity so a re-sent message keeps writing to the right activity
+        // log. data.getString returns null when absent; org.json stores null as
+        // JSONObject.NULL, which jsonToData maps back to a missing key below.
+        json.put(RequestWorker.DATA_CONFIG_KEY, data.getString(RequestWorker.DATA_CONFIG_KEY));
+        json.put(RequestWorker.DATA_SENDER, data.getString(RequestWorker.DATA_SENDER));
         return json;
     }
 
     static Data jsonToData(JSONObject json) {
-        return new Data.Builder()
+        Data.Builder builder = new Data.Builder()
                 .putString(RequestWorker.DATA_URL, json.optString(RequestWorker.DATA_URL, null))
                 .putString(RequestWorker.DATA_TEXT, json.optString(RequestWorker.DATA_TEXT, null))
                 .putString(RequestWorker.DATA_HEADERS, json.optString(RequestWorker.DATA_HEADERS, null))
@@ -131,8 +136,18 @@ public class FailedMessage {
                 // Local mode must survive the round-trip, or a retried message
                 // regains the validated-internet constraint and a LAN-only
                 // delivery never runs (see RequestWorker.enqueue).
-                .putBoolean(RequestWorker.DATA_LOCAL_MODE, json.optBoolean(RequestWorker.DATA_LOCAL_MODE, false))
-                .build();
+                .putBoolean(RequestWorker.DATA_LOCAL_MODE, json.optBoolean(RequestWorker.DATA_LOCAL_MODE, false));
+
+        // org.json turns a stored null (JSONObject.NULL) into the string "null",
+        // which would log under a bogus rule key; only copy over present, non-null
+        // values. Data.Builder rejects null arguments, so absence == key omitted.
+        if (json.has(RequestWorker.DATA_CONFIG_KEY) && !json.isNull(RequestWorker.DATA_CONFIG_KEY)) {
+            builder.putString(RequestWorker.DATA_CONFIG_KEY, json.optString(RequestWorker.DATA_CONFIG_KEY, null));
+        }
+        if (json.has(RequestWorker.DATA_SENDER) && !json.isNull(RequestWorker.DATA_SENDER)) {
+            builder.putString(RequestWorker.DATA_SENDER, json.optString(RequestWorker.DATA_SENDER, null));
+        }
+        return builder.build();
     }
 
     private static SharedPreferences getPreference(Context context) {

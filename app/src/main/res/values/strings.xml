@@ -68,4 +68,22 @@
     <string name="backup_export_failed">Export failed</string>
     <string name="backup_import_success">Imported %d rule(s)</string>
     <string name="backup_import_failed">Import failed: not a valid backup file</string>
+    <string name="menu_activity_log">Activity log</string>
+    <string name="title_activity_log">Activity log</string>
+    <string name="label_activity_log_rule">Routing parameter</string>
+    <string name="activity_log_empty">No activity for this rule yet</string>
+    <string name="activity_log_no_rules">No forwarding rules yet</string>
+    <string name="activity_log_cleared">Log cleared</string>
+    <string name="activity_log_detail_empty">—</string>
+    <string name="log_event_queued">Queued</string>
+    <string name="log_event_success">Delivered</string>
+    <string name="log_event_retry">Retry</string>
+    <string name="log_event_failed">Failed</string>
+    <string name="log_event_backfill">Backfill</string>
+    <string name="menu_backfill_sms">Backfill SMS</string>
+    <string name="backfill_confirm_title">Backfill SMS</string>
+    <string name="backfill_confirm_message">Forward all messages already in the inbox through the matching rules? This can send many requests.</string>
+    <string name="backfill_started">Backfill started in the background</string>
+    <string name="backfill_permission_needed">SMS read permission is required to backfill messages</string>
+    <string name="btn_start">Start</string>
 </resources>

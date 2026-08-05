@@ -91,4 +91,41 @@ public class SmsBroadcastReceiverMatchTest {
         // drops SMS — the opposite of the sender matcher.
         assertTrue(SmsBroadcastReceiver.matchesFilter("[unclosed", "any body"));
     }
+
+    private ForwardingConfig rule(String sender, boolean isRegex, boolean enabled, int simSlot, String filter) {
+        ForwardingConfig config = new ForwardingConfig(null);
+        config.setSender(sender);
+        config.setIsSenderRegex(isRegex);
+        config.setIsSmsEnabled(enabled);
+        config.setSimSlot(simSlot);
+        config.setSmsFilter(filter);
+        return config;
+    }
+
+    @Test
+    public void matchesConfigHonorsSenderAndFilter() {
+        ForwardingConfig config = rule("+1555", false, true, 0, "OTP");
+        assertTrue(SmsBroadcastReceiver.matchesConfig(config, "+1555", ASTERISK, "Your OTP is 4", 0));
+        assertFalse(SmsBroadcastReceiver.matchesConfig(config, "+1555", ASTERISK, "no code here", 0));
+        assertFalse(SmsBroadcastReceiver.matchesConfig(config, "+1999", ASTERISK, "Your OTP is 4", 0));
+    }
+
+    @Test
+    public void matchesConfigSkipsDisabledRule() {
+        ForwardingConfig config = rule(ASTERISK, false, false, 0, "");
+        assertFalse(SmsBroadcastReceiver.matchesConfig(config, "anyone", ASTERISK, "body", 0));
+    }
+
+    @Test
+    public void matchesConfigHonorsSimSlotFilter() {
+        ForwardingConfig pinned = rule(ASTERISK, false, true, 1, "");
+        assertTrue(SmsBroadcastReceiver.matchesConfig(pinned, "anyone", ASTERISK, "body", 1));
+        assertFalse(SmsBroadcastReceiver.matchesConfig(pinned, "anyone", ASTERISK, "body", 2));
+        // Unknown slot (0) never matches a pinned rule.
+        assertFalse(SmsBroadcastReceiver.matchesConfig(pinned, "anyone", ASTERISK, "body", 0));
+
+        ForwardingConfig any = rule(ASTERISK, false, true, 0, "");
+        assertTrue(SmsBroadcastReceiver.matchesConfig(any, "anyone", ASTERISK, "body", 0));
+        assertTrue(SmsBroadcastReceiver.matchesConfig(any, "anyone", ASTERISK, "body", 2));
+    }
 }
