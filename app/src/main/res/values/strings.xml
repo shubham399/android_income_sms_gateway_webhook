@@ -70,9 +70,7 @@
     <string name="backup_import_failed">Import failed: not a valid backup file</string>
     <string name="menu_activity_log">Activity log</string>
     <string name="title_activity_log">Activity log</string>
-    <string name="label_activity_log_rule">Routing parameter</string>
-    <string name="activity_log_empty">No activity for this rule yet</string>
-    <string name="activity_log_no_rules">No forwarding rules yet</string>
+    <string name="activity_log_empty">No activity yet</string>
     <string name="activity_log_cleared">Log cleared</string>
     <string name="activity_log_detail_empty">—</string>
     <string name="log_event_queued">Queued</string>

@@ -45,21 +45,36 @@ public class ActivityLog {
         public final String sender;
         public final String content;
         public final String detail;
+        // Monotonic write-order stamp so "newest on top" holds even when two
+        // entries land in the same millisecond. 0 for entries stored before
+        // this field existed (sorted by timestamp then).
+        final long seq;
 
         public LogEntry(String configKey, long timestamp, String event, String sender,
                         String content, String detail) {
+            this(configKey, timestamp, event, sender, content, detail, 0L);
+        }
+
+        public LogEntry(String configKey, long timestamp, String event, String sender,
+                        String content, String detail, long seq) {
             this.configKey = configKey;
             this.timestamp = timestamp;
             this.event = event == null ? "" : event;
             this.sender = sender == null ? "" : sender;
             this.content = content == null ? "" : content;
             this.detail = detail == null ? "" : detail;
+            this.seq = seq;
+        }
+
+        long sortKey() {
+            return seq != 0L ? seq : timestamp;
         }
 
         JSONObject toJson() {
             JSONObject json = new JSONObject();
             try {
                 json.put("ts", this.timestamp);
+                json.put("seq", this.seq);
                 json.put("event", this.event);
                 json.put("sender", this.sender);
                 json.put("content", this.content);
@@ -77,8 +92,18 @@ public class ActivityLog {
                     json.optString("event", EVENT_QUEUED),
                     json.optString("sender", ""),
                     json.optString("content", ""),
-                    json.optString("detail", ""));
+                    json.optString("detail", ""),
+                    json.optLong("seq", 0L));
         }
+    }
+
+    private static long lastSeq = 0L;
+
+    private static long nextSeq() {
+        // Strictly increasing within the process, and always ahead of any wall
+        // clock, so a process restart can't collide with older stored entries.
+        lastSeq = Math.max(System.currentTimeMillis(), lastSeq + 1);
+        return lastSeq;
     }
 
     /** Logs a single event for one rule. */
@@ -106,6 +131,10 @@ public class ActivityLog {
             if (entry.configKey == null || entry.configKey.isEmpty()) {
                 continue;
             }
+            // Stamp a monotonic write-order seq so "newest on top" is
+            // deterministic even for same-millisecond batches.
+            entry = new LogEntry(entry.configKey, entry.timestamp, entry.event,
+                    entry.sender, entry.content, entry.detail, nextSeq());
             List<LogEntry> bucket = byRule.get(entry.configKey);
             if (bucket == null) {
                 bucket = new ArrayList<>();
@@ -158,6 +187,31 @@ public class ActivityLog {
         } catch (JSONException e) {
             Log.e("ActivityLog", String.valueOf(e.getMessage()));
         }
+        result.sort((a, b) -> Long.compare(b.sortKey(), a.sortKey()));
+        return result;
+    }
+
+    /**
+     * Returns every rule's entries merged into one list, newest first. The
+     * time-based view shows all routing parameters together.
+     */
+    public static List<LogEntry> getAll(Context context) {
+        List<LogEntry> result = new ArrayList<>();
+        Map<String, ?> stored = getPreference(context).getAll();
+        for (Map.Entry<String, ?> entry : stored.entrySet()) {
+            if (!(entry.getValue() instanceof String)) {
+                continue;
+            }
+            try {
+                JSONArray array = new JSONArray((String) entry.getValue());
+                for (int i = 0; i < array.length(); i++) {
+                    result.add(LogEntry.fromJson(entry.getKey(), array.optJSONObject(i)));
+                }
+            } catch (JSONException e) {
+                Log.e("ActivityLog", String.valueOf(e.getMessage()));
+            }
+        }
+        result.sort((a, b) -> Long.compare(b.sortKey(), a.sortKey()));
         return result;
     }
 

@@ -70,9 +70,7 @@
     <string name="backup_import_failed">Не удалось импортировать: неверный файл резервной копии</string>
     <string name="menu_activity_log">Журнал активности</string>
     <string name="title_activity_log">Журнал активности</string>
-    <string name="label_activity_log_rule">Правило маршрутизации</string>
-    <string name="activity_log_empty">Для этого правила пока нет записей</string>
-    <string name="activity_log_no_rules">Пока нет правил пересылки</string>
+    <string name="activity_log_empty">Пока нет записей</string>
     <string name="activity_log_cleared">Журнал очищен</string>
     <string name="activity_log_detail_empty">—</string>
     <string name="log_event_queued">В очереди</string>

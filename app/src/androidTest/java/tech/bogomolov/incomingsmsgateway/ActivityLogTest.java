@@ -84,6 +84,41 @@ public class ActivityLogTest {
     }
 
     @Test
+    public void testGetAllMergesRulesNewestFirst() {
+        List<ActivityLog.LogEntry> batch = new ArrayList<>();
+        batch.add(new ActivityLog.LogEntry("rule-1", 1000L, ActivityLog.EVENT_QUEUED, "a", "body-a", null));
+        batch.add(new ActivityLog.LogEntry("rule-2", 3000L, ActivityLog.EVENT_FAILED, "b", "body-b", "HTTP 500"));
+        batch.add(new ActivityLog.LogEntry("rule-1", 2000L, ActivityLog.EVENT_SUCCESS, "a", "body-a", "HTTP 200"));
+        batch.add(new ActivityLog.LogEntry("rule-2", 4000L, ActivityLog.EVENT_RETRY, "b", "body-b", "timeout"));
+        ActivityLog.logAll(context, batch);
+
+        List<ActivityLog.LogEntry> all = ActivityLog.getAll(context);
+        assertEquals(4, all.size());
+        // Newest first across every rule, regardless of which rule logged it.
+        assertEquals(4000L, all.get(0).timestamp);
+        assertEquals("rule-2", all.get(0).configKey);
+        assertEquals(3000L, all.get(1).timestamp);
+        assertEquals(2000L, all.get(2).timestamp);
+        assertEquals(1000L, all.get(3).timestamp);
+        // Entry carries its rule so the row can label which parameter it belongs to.
+        assertEquals("body-a", all.get(3).content);
+    }
+
+    @Test
+    public void testGetAllTieBreaksByWriteOrder() {
+        // Same timestamp, same rule: the later write must still surface first.
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "a", "body-a", null);
+        List<ActivityLog.LogEntry> second = new ArrayList<>();
+        second.add(new ActivityLog.LogEntry("rule-1", 9999L, ActivityLog.EVENT_SUCCESS, "a", "body-a", "HTTP 200"));
+        ActivityLog.logAll(context, second);
+
+        List<ActivityLog.LogEntry> all = ActivityLog.getAll(context);
+        assertEquals(2, all.size());
+        assertEquals(ActivityLog.EVENT_SUCCESS, all.get(0).event);
+        assertEquals(ActivityLog.EVENT_QUEUED, all.get(1).event);
+    }
+
+    @Test
     public void testLogAllBatchesNewestFirst() {
         List<ActivityLog.LogEntry> batch = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

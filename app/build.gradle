@@ -8,8 +8,8 @@ android {
         applicationId "tech.bogomolov.incomingsmsgateway"
         minSdkVersion 14
         targetSdkVersion 33
-        versionCode 16
-        versionName "2.5.2"
+        versionCode 17
+        versionName "2.6.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -22,6 +22,14 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Name every built APK with its version, e.g. app-2.5.2.apk, so the artifact
+    // is self-identifying when copied around or shared.
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "app-${variant.versionName}.apk"
         }
     }
     compileOptions {
