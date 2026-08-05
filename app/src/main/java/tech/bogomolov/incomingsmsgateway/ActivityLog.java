@@ -21,7 +21,8 @@ import java.util.Map;
  * {@link #MAX_PER_CONFIG} so the store can't grow without bound. Kept separate
  * from {@link ForwardingConfig} (whose getAll() would try to parse these as
  * configs) and from {@link FailedMessage} (which stores payloads, not a log).
- * Only senders and statuses are stored — never message bodies.
+ * Entries carry the sender and the message body, so the UI can show which SMS
+ * was processed, alongside the event status.
  */
 public class ActivityLog {
 
@@ -42,13 +43,16 @@ public class ActivityLog {
         public final long timestamp;
         public final String event;
         public final String sender;
+        public final String content;
         public final String detail;
 
-        public LogEntry(String configKey, long timestamp, String event, String sender, String detail) {
+        public LogEntry(String configKey, long timestamp, String event, String sender,
+                        String content, String detail) {
             this.configKey = configKey;
             this.timestamp = timestamp;
             this.event = event == null ? "" : event;
             this.sender = sender == null ? "" : sender;
+            this.content = content == null ? "" : content;
             this.detail = detail == null ? "" : detail;
         }
 
@@ -58,6 +62,7 @@ public class ActivityLog {
                 json.put("ts", this.timestamp);
                 json.put("event", this.event);
                 json.put("sender", this.sender);
+                json.put("content", this.content);
                 json.put("detail", this.detail);
             } catch (JSONException e) {
                 Log.e("ActivityLog", String.valueOf(e.getMessage()));
@@ -71,14 +76,16 @@ public class ActivityLog {
                     json.optLong("ts", 0L),
                     json.optString("event", EVENT_QUEUED),
                     json.optString("sender", ""),
+                    json.optString("content", ""),
                     json.optString("detail", ""));
         }
     }
 
     /** Logs a single event for one rule. */
-    public static void log(Context context, String configKey, String event, String sender, String detail) {
+    public static void log(Context context, String configKey, String event, String sender,
+                           String content, String detail) {
         List<LogEntry> entries = new ArrayList<>();
-        entries.add(new LogEntry(configKey, System.currentTimeMillis(), event, sender, detail));
+        entries.add(new LogEntry(configKey, System.currentTimeMillis(), event, sender, content, detail));
         logAll(context, entries);
     }
 

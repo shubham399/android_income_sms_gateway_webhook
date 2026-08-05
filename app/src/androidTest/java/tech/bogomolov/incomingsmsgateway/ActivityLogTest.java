@@ -39,8 +39,8 @@ public class ActivityLogTest {
 
     @Test
     public void testLogAndGetForConfig() {
-        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "+15551234567", null);
-        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_SUCCESS, "+15551234567", "HTTP 200");
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "+15551234567", "Your OTP is 1234", null);
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_SUCCESS, "+15551234567", "Your OTP is 1234", "HTTP 200");
 
         List<ActivityLog.LogEntry> entries = ActivityLog.getForConfig(context, "rule-1");
         assertEquals(2, entries.size());
@@ -48,25 +48,28 @@ public class ActivityLogTest {
         assertEquals(ActivityLog.EVENT_SUCCESS, entries.get(0).event);
         assertEquals(ActivityLog.EVENT_QUEUED, entries.get(1).event);
         assertEquals("+15551234567", entries.get(0).sender);
+        // The SMS body round-trips so the UI can show which message was processed.
+        assertEquals("Your OTP is 1234", entries.get(0).content);
         assertEquals("HTTP 200", entries.get(0).detail);
         assertTrue(entries.get(0).timestamp >= entries.get(1).timestamp);
     }
 
     @Test
     public void testLogIsPerRule() {
-        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "a", null);
-        ActivityLog.log(context, "rule-2", ActivityLog.EVENT_FAILED, "b", "HTTP 500");
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "a", "body-a", null);
+        ActivityLog.log(context, "rule-2", ActivityLog.EVENT_FAILED, "b", "body-b", "HTTP 500");
 
         assertEquals(1, ActivityLog.getForConfig(context, "rule-1").size());
         assertEquals(1, ActivityLog.getForConfig(context, "rule-2").size());
         assertEquals("b", ActivityLog.getForConfig(context, "rule-2").get(0).sender);
+        assertEquals("body-b", ActivityLog.getForConfig(context, "rule-2").get(0).content);
         assertEquals(2, ActivityLog.getTotalCount(context));
     }
 
     @Test
     public void testClearForConfig() {
-        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "a", null);
-        ActivityLog.log(context, "rule-2", ActivityLog.EVENT_QUEUED, "b", null);
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "a", "body-a", null);
+        ActivityLog.log(context, "rule-2", ActivityLog.EVENT_QUEUED, "b", "body-b", null);
 
         ActivityLog.clearForConfig(context, "rule-1");
 
@@ -76,7 +79,7 @@ public class ActivityLogTest {
 
     @Test
     public void testNullConfigKeyIsIgnored() {
-        ActivityLog.log(context, null, ActivityLog.EVENT_QUEUED, "a", null);
+        ActivityLog.log(context, null, ActivityLog.EVENT_QUEUED, "a", "body-a", null);
         assertEquals(0, ActivityLog.getTotalCount(context));
     }
 
@@ -85,7 +88,7 @@ public class ActivityLogTest {
         List<ActivityLog.LogEntry> batch = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             batch.add(new ActivityLog.LogEntry(
-                    "rule-1", 1000L + i, ActivityLog.EVENT_QUEUED, "s" + i, null));
+                    "rule-1", 1000L + i, ActivityLog.EVENT_QUEUED, "s" + i, "body-" + i, null));
         }
         ActivityLog.logAll(context, batch);
 
@@ -93,27 +96,29 @@ public class ActivityLogTest {
         assertEquals(10, entries.size());
         // Last added is first.
         assertEquals("s9", entries.get(0).sender);
+        assertEquals("body-9", entries.get(0).content);
         assertEquals("s0", entries.get(9).sender);
     }
 
     @Test
     public void testLogAllAppendsToExisting() {
-        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "old", null);
+        ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "old", "old-body", null);
 
         List<ActivityLog.LogEntry> batch = new ArrayList<>();
-        batch.add(new ActivityLog.LogEntry("rule-1", 2000L, ActivityLog.EVENT_SUCCESS, "new", "HTTP 200"));
+        batch.add(new ActivityLog.LogEntry("rule-1", 2000L, ActivityLog.EVENT_SUCCESS, "new", "new-body", "HTTP 200"));
         ActivityLog.logAll(context, batch);
 
         List<ActivityLog.LogEntry> entries = ActivityLog.getForConfig(context, "rule-1");
         assertEquals(2, entries.size());
         assertEquals("new", entries.get(0).sender);
+        assertEquals("new-body", entries.get(0).content);
         assertEquals("old", entries.get(1).sender);
     }
 
     @Test
     public void testPerRuleCap() {
         for (int i = 0; i < ActivityLog.MAX_PER_CONFIG + 10; i++) {
-            ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "s" + i, null);
+            ActivityLog.log(context, "rule-1", ActivityLog.EVENT_QUEUED, "s" + i, "body-" + i, null);
         }
         assertEquals(ActivityLog.MAX_PER_CONFIG,
                 ActivityLog.getForConfig(context, "rule-1").size());

@@ -85,6 +85,15 @@
                     android:textColor="?attr/colorAccent" />
 
                 <Button
+                    android:id="@+id/backfill_button"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="36dp"
+                    android:text="@string/btn_backfill"
+                    android:textColor="?attr/colorAccent" />
+
+                <Button
                     android:id="@+id/delete_button"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"

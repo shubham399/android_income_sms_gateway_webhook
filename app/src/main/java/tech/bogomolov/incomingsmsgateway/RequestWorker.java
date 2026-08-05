@@ -29,6 +29,7 @@ public class RequestWorker extends Worker {
     public final static String DATA_LOCAL_MODE = "LOCAL_MODE";
     public final static String DATA_CONFIG_KEY = "CONFIG_KEY";
     public final static String DATA_SENDER = "SENDER";
+    public final static String DATA_CONTENT = "CONTENT";
 
     public RequestWorker(
             @NonNull Context context,
@@ -80,6 +81,7 @@ public class RequestWorker extends Worker {
         // logging was added (and for tests), in which case nothing is logged.
         String configKey = getInputData().getString(DATA_CONFIG_KEY);
         String sender = getInputData().getString(DATA_SENDER);
+        String content = getInputData().getString(DATA_CONTENT);
 
         String url = getInputData().getString(DATA_URL);
         String text = getInputData().getString(DATA_TEXT);
@@ -107,7 +109,7 @@ public class RequestWorker extends Worker {
         String result = request.execute();
 
         if (result.equals(Request.RESULT_RETRY)) {
-            ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_RETRY, sender,
+            ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_RETRY, sender, content,
                     request.getResponseCode() >= 0
                             ? "HTTP " + request.getResponseCode()
                             : "connection error");
@@ -115,14 +117,14 @@ public class RequestWorker extends Worker {
         }
 
         if (result.equals(Request.RESULT_ERROR)) {
-            ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_FAILED, sender,
+            ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_FAILED, sender, content,
                     request.getResponseCode() >= 0
                             ? "HTTP " + request.getResponseCode()
                             : "request error");
             return fail(storeFailed);
         }
 
-        ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_SUCCESS, sender,
+        ActivityLog.log(getApplicationContext(), configKey, ActivityLog.EVENT_SUCCESS, sender, content,
                 request.getResponseCode() >= 0 ? "HTTP " + request.getResponseCode() : "");
         return Result.success();
     }

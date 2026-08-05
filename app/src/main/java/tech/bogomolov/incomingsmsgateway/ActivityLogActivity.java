@@ -166,6 +166,10 @@ public class ActivityLogActivity extends AppCompatActivity {
             TextView header = row.findViewById(R.id.log_header);
             header.setText(stamp + " · " + eventLabel(entry.event) + " · " + entry.sender);
 
+            TextView content = row.findViewById(R.id.log_content);
+            content.setVisibility(entry.content.isEmpty() ? View.GONE : View.VISIBLE);
+            content.setText(entry.content);
+
             TextView detail = row.findViewById(R.id.log_detail);
             detail.setText(entry.detail.isEmpty()
                     ? getString(R.string.activity_log_detail_empty)

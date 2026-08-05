@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_CODE = 0;
     private static final int BACKFILL_PERMISSION_CODE = 1;
 
+    // Rule key a pending backfill-permission request is waiting for; null means
+    // the global (all rules) backfill.
+    private String pendingBackfillKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,9 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             return;
-        }
-
-        if (requestCode != PERMISSION_CODE) {
+        }        if (requestCode != PERMISSION_CODE) {
             return;
         }
         for (int i = 0; i < permissions.length; i++) {
@@ -156,13 +158,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_bar_backfill) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_SMS}, BACKFILL_PERMISSION_CODE);
-            } else {
-                startBackfill();
-            }
+            requestBackfill(null);
             return true;
         }
 
@@ -225,14 +221,38 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Entry point for the per-rule Backfill button in the list (ListAdapter).
+    // null key means the global "all rules" backfill from the action bar.
+    public void requestBackfillForConfig(String configKey) {
+        requestBackfill(configKey);
+    }
+
+    // Requests READ_SMS if needed, then runs the backfill for the pending rule.
+    private void requestBackfill(String configKey) {
+        this.pendingBackfillKey = configKey;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_SMS}, BACKFILL_PERMISSION_CODE);
+        } else {
+            startBackfill();
+        }
+    }
+
     // Confirms with the user (a full inbox can generate many requests), then
-    // kicks off the backfill in the background via WorkManager.
+    // kicks off the backfill in the background via WorkManager. Consumes
+    // pendingBackfillKey so a later permission grant can't reuse a stale rule.
     private void startBackfill() {
+        String configKey = this.pendingBackfillKey;
+        this.pendingBackfillKey = null;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.backfill_confirm_title);
-        builder.setMessage(R.string.backfill_confirm_message);
+        builder.setMessage(configKey == null
+                ? R.string.backfill_confirm_message
+                : R.string.backfill_confirm_message_rule);
         builder.setPositiveButton(R.string.btn_start, (dialog, which) -> {
-            BackfillWorker.enqueue(this);
+            BackfillWorker.enqueue(this, configKey);
             Toast.makeText(this, R.string.backfill_started, Toast.LENGTH_LONG).show();
         });
         builder.setNegativeButton(R.string.btn_cancel, null);

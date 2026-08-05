@@ -119,6 +119,7 @@ public class FailedMessage {
         // JSONObject.NULL, which jsonToData maps back to a missing key below.
         json.put(RequestWorker.DATA_CONFIG_KEY, data.getString(RequestWorker.DATA_CONFIG_KEY));
         json.put(RequestWorker.DATA_SENDER, data.getString(RequestWorker.DATA_SENDER));
+        json.put(RequestWorker.DATA_CONTENT, data.getString(RequestWorker.DATA_CONTENT));
         return json;
     }
 
@@ -146,6 +147,9 @@ public class FailedMessage {
         }
         if (json.has(RequestWorker.DATA_SENDER) && !json.isNull(RequestWorker.DATA_SENDER)) {
             builder.putString(RequestWorker.DATA_SENDER, json.optString(RequestWorker.DATA_SENDER, null));
+        }
+        if (json.has(RequestWorker.DATA_CONTENT) && !json.isNull(RequestWorker.DATA_CONTENT)) {
+            builder.putString(RequestWorker.DATA_CONTENT, json.optString(RequestWorker.DATA_CONTENT, null));
         }
         return builder.build();
     }

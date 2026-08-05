@@ -6,6 +6,7 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -32,10 +33,24 @@ public class BackfillWorker extends Worker {
         super(context, params);
     }
 
-    /** Enqueues the backfill as a one-off background job. */
+    /** Enqueues a global backfill (every matching rule) as a background job. */
     public static void enqueue(Context context) {
+        enqueue(context, null);
+    }
+
+    /**
+     * Enqueues a backfill as a background job. When {@code configKey} is set only
+     * that one routing rule is considered; otherwise all matching rules run.
+     */
+    public static void enqueue(Context context, String configKey) {
+        Data.Builder input = new Data.Builder();
+        if (configKey != null) {
+            input.putString(RequestWorker.DATA_CONFIG_KEY, configKey);
+        }
         OneTimeWorkRequest request =
-                new OneTimeWorkRequest.Builder(BackfillWorker.class).build();
+                new OneTimeWorkRequest.Builder(BackfillWorker.class)
+                        .setInputData(input.build())
+                        .build();
         WorkManager.getInstance(context).enqueue(request);
     }
 
@@ -44,7 +59,8 @@ public class BackfillWorker extends Worker {
     public Result doWork() {
         Context context = getApplicationContext();
         String asterisk = context.getString(R.string.asterisk);
-        List<ForwardingConfig> configs = ForwardingConfig.getAll(context);
+        List<ForwardingConfig> configs = ruleScope(getInputData()
+                .getString(RequestWorker.DATA_CONFIG_KEY));
 
         int dispatched = 0;
         // Batched activity-log writes so a large inbox doesn't do a
@@ -81,7 +97,7 @@ public class BackfillWorker extends Worker {
                                     config, sender, slotName, content, timeStamp));
                             entries.add(new ActivityLog.LogEntry(
                                     config.getKey(), System.currentTimeMillis(),
-                                    ActivityLog.EVENT_BACKFILL, sender, null));
+                                    ActivityLog.EVENT_BACKFILL, sender, content, null));
                             dispatched++;
                         }
                     }
@@ -98,6 +114,23 @@ public class BackfillWorker extends Worker {
         ActivityLog.logAll(context, entries);
         Log.d("BackfillWorker", "dispatched " + dispatched + " backfill message(s)");
         return Result.success();
+    }
+
+    // Either every stored rule or just the one named in the worker input; empty
+    // when the named rule was deleted before the worker ran.
+    private List<ForwardingConfig> ruleScope(String configKey) {
+        List<ForwardingConfig> all = ForwardingConfig.getAll(getApplicationContext());
+        if (configKey == null) {
+            return all;
+        }
+        List<ForwardingConfig> scoped = new ArrayList<>();
+        for (ForwardingConfig config : all) {
+            if (configKey.equals(config.getKey())) {
+                scoped.add(config);
+                break;
+            }
+        }
+        return scoped;
     }
 
     // Best-effort SIM slot (1-based, 0 = unknown) so rules pinned to a specific

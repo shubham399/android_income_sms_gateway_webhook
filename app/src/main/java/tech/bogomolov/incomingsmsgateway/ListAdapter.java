@@ -63,11 +63,25 @@ public class ListAdapter extends ArrayAdapter<ForwardingConfig> {
         editButton.setTag(R.id.edit_button, position);
         editButton.setOnClickListener(this::onEditClick);
 
+        View backfillButton = row.findViewById(R.id.backfill_button);
+        backfillButton.setTag(R.id.backfill_button, position);
+        backfillButton.setOnClickListener(this::onBackfillClick);
+
         View deleteButton = row.findViewById(R.id.delete_button);
         deleteButton.setTag(R.id.delete_button, position);
         deleteButton.setOnClickListener(this::onDeleteClick);
 
         return row;
+    }
+
+    // Per-rule backfill: forward every inbox message that matches THIS rule.
+    // Permission handling and the worker kick-off live in MainActivity.
+    public void onBackfillClick(View view) {
+        final int position = (int) view.getTag(R.id.backfill_button);
+        final ForwardingConfig config = getItem(position);
+        if (context instanceof MainActivity) {
+            ((MainActivity) context).requestBackfillForConfig(config.getKey());
+        }
     }
 
     public void onEditClick(View view) {

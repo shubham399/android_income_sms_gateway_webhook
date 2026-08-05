@@ -65,7 +65,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     protected void callWebHook(ForwardingConfig config, String sender, String slotName,
                                String content, long timeStamp) {
 
-        ActivityLog.log(this.context, config.getKey(), ActivityLog.EVENT_QUEUED, sender, null);
+        ActivityLog.log(this.context, config.getKey(), ActivityLog.EVENT_QUEUED, sender, content, null);
         RequestWorker.enqueue(this.context, buildWebHookData(config, sender, slotName, content, timeStamp));
     }
 
@@ -91,6 +91,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 .putBoolean(RequestWorker.DATA_LOCAL_MODE, config.getLocalMode())
                 .putString(RequestWorker.DATA_CONFIG_KEY, config.getKey())
                 .putString(RequestWorker.DATA_SENDER, sender)
+                .putString(RequestWorker.DATA_CONTENT, content)
                 .build();
     }
 

@@ -83,7 +83,9 @@
     <string name="menu_backfill_sms">Отправить накопленные SMS</string>
     <string name="backfill_confirm_title">Отправка накопленных SMS</string>
     <string name="backfill_confirm_message">Переслать все сообщения из входящих через подходящие правила? Это может отправить много запросов.</string>
+    <string name="backfill_confirm_message_rule">Переслать все сообщения из входящих, подходящие под это правило? Это может отправить много запросов.</string>
     <string name="backfill_started">Фоновая отправка начата</string>
     <string name="backfill_permission_needed">Для отправки накопленных SMS требуется разрешение на чтение SMS</string>
     <string name="btn_start">Начать</string>
+    <string name="btn_backfill">Отправить</string>
 </resources>
