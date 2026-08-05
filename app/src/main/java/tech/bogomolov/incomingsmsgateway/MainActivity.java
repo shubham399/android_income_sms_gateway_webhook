@@ -222,8 +222,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Entry point for the per-rule Backfill button in the list (ListAdapter).
-    // null key means the global "all rules" backfill from the action bar.
+    // Never falls back to the global "all rules" backfill: a null key means the
+    // rule could not be identified, so the user gets an error instead of an
+    // unexpected full-inbox run.
     public void requestBackfillForConfig(String configKey) {
+        if (configKey == null) {
+            Toast.makeText(this, R.string.backfill_rule_unknown, Toast.LENGTH_LONG).show();
+            return;
+        }
         requestBackfill(configKey);
     }
 

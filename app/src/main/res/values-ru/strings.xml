@@ -86,6 +86,7 @@
     <string name="backfill_confirm_message_rule">Переслать все сообщения из входящих, подходящие под это правило? Это может отправить много запросов.</string>
     <string name="backfill_started">Фоновая отправка начата</string>
     <string name="backfill_permission_needed">Для отправки накопленных SMS требуется разрешение на чтение SMS</string>
+    <string name="backfill_rule_unknown">Не удалось определить правило для отправки</string>
     <string name="btn_start">Начать</string>
     <string name="btn_backfill">Отправить</string>
 </resources>

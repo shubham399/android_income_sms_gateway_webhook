@@ -339,6 +339,13 @@ public class ForwardingConfig {
             config.setUrl(value);
             config.setTemplate(ForwardingConfig.getDefaultJsonTemplate());
             config.setHeaders(ForwardingConfig.getDefaultJsonHeaders());
+            // Legacy bare-URL entries predate the key field. Adopt the
+            // SharedPreferences map key (the sender) as their identity so
+            // per-rule features (backfill, activity log) can reference them
+            // instead of treating them as anonymous.
+            if (fallbackKey != null) {
+                config.setKey(fallbackKey);
+            }
         }
 
         return config;

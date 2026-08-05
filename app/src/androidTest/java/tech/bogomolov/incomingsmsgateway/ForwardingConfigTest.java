@@ -100,6 +100,9 @@ public class ForwardingConfigTest {
         assertEquals("http://legacy.example/hook", loaded.getUrl());
         assertEquals(ForwardingConfig.getDefaultJsonTemplate(), loaded.getTemplate());
         assertEquals(ForwardingConfig.getDefaultJsonHeaders(), loaded.getHeaders());
+        // A legacy rule must still have an identity, or per-rule features
+        // (backfill, activity log) can't reference it.
+        assertEquals("oldSender", loaded.getKey());
     }
 
     @Test

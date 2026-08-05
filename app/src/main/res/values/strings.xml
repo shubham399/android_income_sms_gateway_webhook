@@ -86,6 +86,7 @@
     <string name="backfill_confirm_message_rule">Forward all messages already in the inbox that match this rule? This can send many requests.</string>
     <string name="backfill_started">Backfill started in the background</string>
     <string name="backfill_permission_needed">SMS read permission is required to backfill messages</string>
+    <string name="backfill_rule_unknown">Couldn\'t identify the rule for backfill</string>
     <string name="btn_start">Start</string>
     <string name="btn_backfill">Backfill</string>
 </resources>
