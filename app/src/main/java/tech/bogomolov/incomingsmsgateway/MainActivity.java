@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.work.Data;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -29,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,10 +49,21 @@ public class MainActivity extends AppCompatActivity {
     // the global (all rules) backfill.
     private String pendingBackfillKey;
 
+    // Observes the whole backfill work chain (any scope) so the progress card
+    // tracks the background run live, including finishing, cancelling, or the
+    // chain being wiped by a force-stop.
+    private final Observer<List<WorkInfo>> backfillObserver = this::onBackfillWorkChanged;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        findViewById(R.id.backfill_cancel_button).setOnClickListener(v -> {
+            String scope = BackfillState.getScope(this);
+            BackfillWorker.cancel(this, scope.isEmpty() ? null : scope);
+            Toast.makeText(this, R.string.backfill_cancelled, Toast.LENGTH_SHORT).show();
+        });
 
         ArrayList<String> permissions = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -124,6 +141,15 @@ public class MainActivity extends AppCompatActivity {
             listAdapter.clear();
             listAdapter.addAll(ForwardingConfig.getAll(this));
         }
+        WorkManager.getInstance(this).getWorkInfosByTagLiveData(BackfillWorker.TAG)
+                .observe(this, backfillObserver);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        WorkManager.getInstance(this).getWorkInfosByTagLiveData(BackfillWorker.TAG)
+                .removeObserver(backfillObserver);
     }
 
     @Override
@@ -259,10 +285,56 @@ public class MainActivity extends AppCompatActivity {
                 : R.string.backfill_confirm_message_rule);
         builder.setPositiveButton(R.string.btn_start, (dialog, which) -> {
             BackfillWorker.enqueue(this, configKey);
+            findViewById(R.id.backfill_progress).setVisibility(View.VISIBLE);
             Toast.makeText(this, R.string.backfill_started, Toast.LENGTH_LONG).show();
         });
         builder.setNegativeButton(R.string.btn_cancel, null);
         builder.show();
+    }
+
+    // Drives the progress card from the live work info. Hides it when no backfill
+    // work is in flight (finished, cancelled, or force-stopped); shows an
+    // indeterminate bar during the scan and done/target once the match count is
+    // known.
+    private void onBackfillWorkChanged(List<WorkInfo> infos) {
+        View bar = findViewById(R.id.backfill_progress);
+        if (bar == null) {
+            return;
+        }
+        WorkInfo active = null;
+        if (infos != null) {
+            for (WorkInfo info : infos) {
+                WorkInfo.State state = info.getState();
+                if (state == WorkInfo.State.ENQUEUED
+                        || state == WorkInfo.State.RUNNING
+                        || state == WorkInfo.State.BLOCKED) {
+                    active = info;
+                    break;
+                }
+            }
+        }
+        if (active == null) {
+            bar.setVisibility(View.GONE);
+            return;
+        }
+
+        bar.setVisibility(View.VISIBLE);
+        ProgressBar progress = findViewById(R.id.backfill_progress_bar);
+        TextView text = findViewById(R.id.backfill_progress_text);
+        Data data = active.getProgress();
+        int target = data.getInt(BackfillWorker.PROGRESS_TARGET, -1);
+        int done = data.getInt(BackfillWorker.PROGRESS_DONE, -1);
+        if (target > 0) {
+            progress.setIndeterminate(false);
+            progress.setMax(target);
+            progress.setProgress(Math.min(done, target));
+            text.setText(getString(R.string.backfill_progress_detail,
+                    Math.min(done, target), target));
+        } else {
+            // Target not scanned yet: indeterminate bar while counting matches.
+            progress.setIndeterminate(true);
+            text.setText(getString(R.string.backfill_scanning));
+        }
     }
 
     private void showList() {

@@ -1,6 +1,8 @@
 package tech.bogomolov.incomingsmsgateway;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +38,21 @@ public class ActivityLogActivity extends AppCompatActivity {
     private TextView emptyView;
     private ListView listView;
 
+    // Refreshes the list while the screen is visible so entries written in the
+    // background (RequestWorker, BackfillWorker) show up as they happen instead
+    // of only when the activity is re-entered.
+    private static final long REFRESH_INTERVAL_MS = 1000L;
+    private final Handler refreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable refreshTask = new Runnable() {
+        @Override
+        public void run() {
+            reload();
+            if (!isFinishing()) {
+                refreshHandler.postDelayed(this, REFRESH_INTERVAL_MS);
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,8 +66,15 @@ public class ActivityLogActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Logs accrue in the background (RequestWorker, BackfillWorker); refresh
-        // whenever the screen comes forward.
+        // whenever the screen comes forward and keep polling while it is visible.
         reload();
+        refreshHandler.post(refreshTask);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        refreshHandler.removeCallbacks(refreshTask);
     }
 
     @Override
@@ -71,6 +95,12 @@ public class ActivityLogActivity extends AppCompatActivity {
     }
 
     private void reload() {
+        // Keep the scroll position across refreshes so new entries appearing at
+        // the top don't bounce the user out of the row they are reading.
+        int position = listView.getFirstVisiblePosition();
+        View top = listView.getChildAt(0);
+        int offset = top == null ? 0 : top.getTop();
+
         List<ActivityLog.LogEntry> entries = ActivityLog.getAll(this);
         if (entries.isEmpty()) {
             emptyView.setText(R.string.activity_log_empty);
@@ -79,6 +109,7 @@ public class ActivityLogActivity extends AppCompatActivity {
         } else {
             emptyView.setVisibility(View.GONE);
             listView.setAdapter(new LogAdapter(entries, ruleLabels()));
+            listView.setSelectionFromTop(position, offset);
         }
     }
 

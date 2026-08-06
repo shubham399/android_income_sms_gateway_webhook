@@ -8,8 +8,8 @@ android {
         applicationId "tech.bogomolov.incomingsmsgateway"
         minSdkVersion 14
         targetSdkVersion 33
-        versionCode 17
-        versionName "2.6.0"
+        versionCode 18
+        versionName "2.7.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
