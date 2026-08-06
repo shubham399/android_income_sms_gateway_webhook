@@ -89,6 +89,7 @@
     <string name="btn_backfill">Backfill</string>
     <string name="backfill_progress_title">Backfill in progress</string>
     <string name="backfill_scanning">Scanning messages…</string>
+    <string name="backfill_scanning_count">Scanning messages… %1$d matched so far</string>
     <string name="backfill_progress_detail">%1$d / %2$d messages forwarded</string>
     <string name="backfill_cancel">Cancel backfill</string>
     <string name="backfill_cancelled">Backfill cancelled</string>

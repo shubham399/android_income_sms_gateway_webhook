@@ -298,53 +298,79 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Drives the progress card from the live work info. Hides it when no backfill
-    // work is in flight (finished, cancelled, or force-stopped); shows an
-    // indeterminate bar during the scan and done/target once the match count is
-    // known.
+    // work is in flight (finished, cancelled, or force-stopped); shows a determinate
+    // done/target bar once the FROM-only scan has produced a match count, an
+    // indeterminate bar with a running tally while the scan counts, and — between
+    // batches, when the next queued work hasn't published yet — the last known
+    // count so the bar doesn't blink back to "scanning".
     private void onBackfillWorkChanged(List<WorkInfo> infos) {
         View bar = findViewById(R.id.backfill_progress);
         if (bar == null) {
             return;
         }
-        WorkInfo active = null;
-        if (infos != null) {
-            // Prefer the actually-executing batch: it is the one carrying live
-            // progress. BLOCKED future batches have no progress yet, so picking
-            // them first would show the indeterminate "scanning" bar.
-            WorkInfo running = null;
-            WorkInfo enqueued = null;
-            WorkInfo blocked = null;
-            for (WorkInfo info : infos) {
-                WorkInfo.State state = info.getState();
-                if (state == WorkInfo.State.RUNNING && running == null) {
-                    running = info;
-                } else if (state == WorkInfo.State.ENQUEUED && enqueued == null) {
-                    enqueued = info;
-                } else if (state == WorkInfo.State.BLOCKED && blocked == null) {
-                    blocked = info;
-                }
-            }
-            active = running != null ? running : (enqueued != null ? enqueued : blocked);
+        if (infos == null || infos.isEmpty()) {
+            bar.setVisibility(View.GONE);
+            return;
         }
+        // Prefer the actually-executing batch: it is the one carrying live
+        // progress. BLOCKED future batches have no progress yet, so picking
+        // them first would show the indeterminate "scanning" bar.
+        WorkInfo running = null;
+        WorkInfo enqueued = null;
+        WorkInfo blocked = null;
+        WorkInfo lastCounted = null;
+        int lastDone = -1;
+        for (WorkInfo info : infos) {
+            WorkInfo.State state = info.getState();
+            if (state == WorkInfo.State.RUNNING && running == null) {
+                running = info;
+            } else if (state == WorkInfo.State.ENQUEUED && enqueued == null) {
+                enqueued = info;
+            } else if (state == WorkInfo.State.BLOCKED && blocked == null) {
+                blocked = info;
+            }
+            // Remember the furthest-progressed work with a known target; used as
+            // a fallback for queued gaps (scan finished -> first batch waiting,
+            // or one batch finished -> next one starting).
+            Data progress = info.getProgress();
+            if (progress.getInt(BackfillWorker.PROGRESS_TARGET, -1) > 0
+                    && progress.getInt(BackfillWorker.PROGRESS_DONE, -1) > lastDone) {
+                lastCounted = info;
+                lastDone = progress.getInt(BackfillWorker.PROGRESS_DONE, -1);
+            }
+        }
+        WorkInfo active = running != null ? running : (enqueued != null ? enqueued : blocked);
         if (active == null) {
             bar.setVisibility(View.GONE);
             return;
         }
 
-        bar.setVisibility(View.VISIBLE);
-        ProgressBar progress = findViewById(R.id.backfill_progress_bar);
-        TextView text = findViewById(R.id.backfill_progress_text);
         Data data = active.getProgress();
         int target = data.getInt(BackfillWorker.PROGRESS_TARGET, -1);
         int done = data.getInt(BackfillWorker.PROGRESS_DONE, -1);
+        // A queued-but-not-yet-running work has no progress; show the last count
+        // instead of blinking back to "scanning" between batches.
+        if (target <= 0 && active.getState() != WorkInfo.State.RUNNING && lastCounted != null) {
+            data = lastCounted.getProgress();
+            target = data.getInt(BackfillWorker.PROGRESS_TARGET, -1);
+            done = data.getInt(BackfillWorker.PROGRESS_DONE, -1);
+        }
+
+        bar.setVisibility(View.VISIBLE);
+        ProgressBar progress = findViewById(R.id.backfill_progress_bar);
+        TextView text = findViewById(R.id.backfill_progress_text);
         if (target > 0) {
             progress.setIndeterminate(false);
             progress.setMax(target);
             progress.setProgress(Math.min(done, target));
             text.setText(getString(R.string.backfill_progress_detail,
                     Math.min(done, target), target));
+        } else if (done > 0) {
+            // Target not scanned to completion yet: indeterminate bar with the
+            // running match tally.
+            progress.setIndeterminate(true);
+            text.setText(getString(R.string.backfill_scanning_count, done));
         } else {
-            // Target not scanned yet: indeterminate bar while counting matches.
             progress.setIndeterminate(true);
             text.setText(getString(R.string.backfill_scanning));
         }

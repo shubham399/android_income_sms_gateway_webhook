@@ -26,15 +26,18 @@ import java.util.List;
  *
  * <p>The work is split into small, resumable pieces so a large inbox never runs
  * past WorkManager's execution window or gets killed mid-pass. The first run
- * scans the inbox to count how many messages match the scope rules (the
- * progress target — the count "after the filter"). Each following run processes
- * a bounded batch ordered by inbox id, and unless it was the last page it
- * re-enqueues itself onto the same unique-work chain ({@link ExistingWorkPolicy
- * #APPEND}). Batches therefore keep running one after another even when the
- * process is killed between them, the whole chain can be cancelled at once, and
- * each batch flushes the activity log immediately instead of only at the end.
- * Progress is persisted in {@link BackfillState} and reported via
- * {@link #setProgress}.
+ * scans the inbox to count how many messages match the scope rules' FROM line
+ * (the progress target — counted on the sender alone, so a big inbox produces a
+ * number fast). Each following run processes a bounded batch ordered by inbox
+ * id, applying the full per-rule filter (sender regex, body filter, SIM slot) as
+ * the "removal" pass; unless it was the last page it re-enqueues itself onto the
+ * same unique-work chain ({@link ExistingWorkPolicy #APPEND}). Batches therefore
+ * keep running one after another even when the process is killed between them,
+ * the whole chain can be cancelled at once, and each batch flushes the activity
+ * log immediately instead of only at the end. Because the scan counts on FROM
+ * only, the eventual done count can land below the target (body/SIM-filtered
+ * messages) — an accepted approximation. Progress is persisted in
+ * {@link BackfillState} and reported via {@link #setProgress}.
  */
 public class BackfillWorker extends Worker {
 
@@ -42,6 +45,11 @@ public class BackfillWorker extends Worker {
     // batch (match + dispatch + log) finishes far below WorkManager's execution
     // limit, large enough that the per-message overhead stays low.
     private static final int BATCH_SIZE = 200;
+
+    // How often the scan pass reports its running match count to the progress
+    // bar. Each publish is a SharedPreferences-write-adjacent DB write, so
+    // throttling it keeps a huge inbox from stalling on progress updates.
+    private static final int PROGRESS_REPORT_EVERY = 200;
 
     public static final String PROGRESS_DONE = "done";
     public static final String PROGRESS_TARGET = "target";
@@ -135,13 +143,16 @@ public class BackfillWorker extends Worker {
         }
     }
 
-    // First run: count how many inbox messages match the scope rules. That count
-    // is the progress target ("count after filter"); it is stored so batch runs
-    // report progress against it. Enqueues the first batch when anything matches.
+    // First run: count how many inbox messages have a FROM line matching any
+    // scope rule. Counting on the sender alone skips the expensive per-message
+    // regex/SIM checks, so the target (and a live counter) appear fast even on a
+    // huge inbox; the full filter is applied per message during the batch pass.
+    // Enqueues the first batch when anything matches.
     private Result scan(Context context, String configKey) {
         String asterisk = context.getString(R.string.asterisk);
         List<ForwardingConfig> configs = ruleScope(configKey);
         int matched = 0;
+        int scanned = 0;
 
         Cursor cursor = null;
         try {
@@ -151,8 +162,7 @@ public class BackfillWorker extends Worker {
                 return Result.failure();
             }
             int addressCol = cursor.getColumnIndex(Telephony.Sms.ADDRESS);
-            int bodyCol = cursor.getColumnIndex(Telephony.Sms.BODY);
-            if (addressCol < 0 || bodyCol < 0) {
+            if (addressCol < 0) {
                 Log.e("BackfillWorker", "unexpected inbox columns");
                 return Result.failure();
             }
@@ -161,16 +171,20 @@ public class BackfillWorker extends Worker {
                     return Result.success();
                 }
                 String sender = cursor.getString(addressCol);
-                String content = cursor.getString(bodyCol);
-                if (sender == null || sender.isEmpty() || content == null || content.isEmpty()) {
+                if (sender == null || sender.isEmpty()) {
                     continue;
                 }
-                int slotId = readSimSlot(cursor);
                 for (ForwardingConfig config : configs) {
-                    if (SmsBroadcastReceiver.matchesConfig(config, sender, asterisk, content, slotId)) {
+                    if (config.getIsSmsEnabled()
+                            && SmsBroadcastReceiver.matchesSender(config, sender, asterisk)) {
                         matched++;
                         break;
                     }
+                }
+                // Feed the progress bar a running count so "scanning" isn't a
+                // silent indeterminate spinner on huge inboxes.
+                if (++scanned % PROGRESS_REPORT_EVERY == 0) {
+                    publishProgress(matched, -1);
                 }
             }
         } catch (Exception e) {

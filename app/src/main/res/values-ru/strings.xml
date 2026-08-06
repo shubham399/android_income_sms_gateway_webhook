@@ -89,6 +89,7 @@
     <string name="btn_backfill">Отправить</string>
     <string name="backfill_progress_title">Отправка накопленных SMS</string>
     <string name="backfill_scanning">Сканирование сообщений…</string>
+    <string name="backfill_scanning_count">Сканирование сообщений… найдено %1$d</string>
     <string name="backfill_progress_detail">Переслано %1$d из %2$d</string>
     <string name="backfill_cancel">Отменить отправку</string>
     <string name="backfill_cancelled">Отправка отменена</string>
