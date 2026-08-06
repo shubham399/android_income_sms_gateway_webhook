@@ -16,7 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
+
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +51,7 @@ public class ForwardingConfigDialog {
     }
 
     public void showNew() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context);
         View view = layoutInflater.inflate(R.layout.dialog_config_edit_form, null);
 
         final EditText templateInput = view.findViewById(R.id.input_json_template);
@@ -62,14 +63,14 @@ public class ForwardingConfigDialog {
         final EditText retriesNumInput = view.findViewById(R.id.input_number_retries);
         retriesNumInput.setText(String.valueOf(ForwardingConfig.getDefaultRetriesNumber()));
 
-        final SwitchCompat chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
+        final MaterialSwitch chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
         // Default off: chunked request bodies (Transfer-Encoding: chunked, no Content-Length)
         // are valid HTTP but many webhook servers — notably common PHP setups — receive them
         // as an empty body (issue #97). Fixed-length mode sends Content-Length and works
         // everywhere for these small payloads.
         chunkedModeCheckbox.setChecked(false);
 
-        final SwitchCompat signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
+        final MaterialSwitch signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
         final EditText signHmacSha256Input = view.findViewById(R.id.id_sign_hmac_sha256_secret);
 
         signHmacSha256Checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -108,13 +109,13 @@ public class ForwardingConfigDialog {
     }
 
     public void showEdit(ForwardingConfig config) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context);
         View view = layoutInflater.inflate(R.layout.dialog_config_edit_form, null);
 
         final EditText phoneInput = view.findViewById(R.id.input_phone);
         phoneInput.setText(config.getSender());
 
-        final SwitchCompat senderRegexCheckbox = view.findViewById(R.id.input_sender_regex);
+        final MaterialSwitch senderRegexCheckbox = view.findViewById(R.id.input_sender_regex);
         senderRegexCheckbox.setChecked(config.getIsSenderRegex());
 
         final EditText smsFilterInput = view.findViewById(R.id.input_sms_filter);
@@ -134,19 +135,19 @@ public class ForwardingConfigDialog {
         final EditText retriesNumInput = view.findViewById(R.id.input_number_retries);
         retriesNumInput.setText(String.valueOf(config.getRetriesNumber()));
 
-        final SwitchCompat ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
+        final MaterialSwitch ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
         ignoreSslCheckbox.setChecked(config.getIgnoreSsl());
 
-        final SwitchCompat chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
+        final MaterialSwitch chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
         chunkedModeCheckbox.setChecked(config.getChunkedMode());
 
-        final SwitchCompat storeFailedCheckbox = view.findViewById(R.id.input_store_failed);
+        final MaterialSwitch storeFailedCheckbox = view.findViewById(R.id.input_store_failed);
         storeFailedCheckbox.setChecked(config.getStoreFailed());
 
-        final SwitchCompat localModeCheckbox = view.findViewById(R.id.input_local_mode);
+        final MaterialSwitch localModeCheckbox = view.findViewById(R.id.input_local_mode);
         localModeCheckbox.setChecked(config.getLocalMode());
 
-        final SwitchCompat signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
+        final MaterialSwitch signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
         signHmacSha256Checkbox.setChecked(config.getSignHmacSha256());
 
         final EditText signHmacSha256Input = view.findViewById(R.id.id_sign_hmac_sha256_secret);
@@ -197,7 +198,7 @@ public class ForwardingConfigDialog {
             return null;
         }
 
-        final SwitchCompat senderRegexCheckbox = view.findViewById(R.id.input_sender_regex);
+        final MaterialSwitch senderRegexCheckbox = view.findViewById(R.id.input_sender_regex);
         boolean isSenderRegex = senderRegexCheckbox.isChecked();
 
         final EditText smsFilterInput = view.findViewById(R.id.input_sms_filter);
@@ -245,19 +246,19 @@ public class ForwardingConfigDialog {
             return null;
         }
 
-        final SwitchCompat ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
+        final MaterialSwitch ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
         boolean ignoreSsl = ignoreSslCheckbox.isChecked();
 
-        final SwitchCompat chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
+        final MaterialSwitch chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
         boolean chunkedMode = chunkedModeCheckbox.isChecked();
 
-        final SwitchCompat storeFailedCheckbox = view.findViewById(R.id.input_store_failed);
+        final MaterialSwitch storeFailedCheckbox = view.findViewById(R.id.input_store_failed);
         boolean storeFailed = storeFailedCheckbox.isChecked();
 
-        final SwitchCompat localModeCheckbox = view.findViewById(R.id.input_local_mode);
+        final MaterialSwitch localModeCheckbox = view.findViewById(R.id.input_local_mode);
         boolean localMode = localModeCheckbox.isChecked();
 
-        final SwitchCompat signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
+        final MaterialSwitch signHmacSha256Checkbox = view.findViewById(R.id.id_sign_hmac_sha256);
         boolean signHmacSha256 = signHmacSha256Checkbox.isChecked();
 
         final EditText signHmacSha256Input = view.findViewById(R.id.id_sign_hmac_sha256_secret);

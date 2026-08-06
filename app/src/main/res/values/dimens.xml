@@ -4,4 +4,5 @@
     <dimen name="spacing_medium">16dp</dimen>
     <dimen name="spacing_large">24dp</dimen>
     <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="chip_radius">8dp</dimen>
 </resources>

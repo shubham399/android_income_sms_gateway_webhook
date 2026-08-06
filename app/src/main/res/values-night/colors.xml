@@ -1,10 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Dark counterpart of values/colors.xml: the Material 3 roles resolved when
+     the system dark mode is active (or the dynamic dark scheme is unavailable). -->
 <resources>
-    <color name="colorPrimary">#8AB4F8</color>
-    <color name="colorAccent">#8AB4F8</color>
-    <color name="colorDanger">#F28B82</color>
-    <color name="colorSurface">#1E2022</color>
-    <color name="colorBackground">#121315</color>
-    <color name="colorStatusBar">#121315</color>
-    <color name="colorEmptyIcon">#3C4043</color>
+    <color name="colorPrimary">#AAC7FF</color>
+    <color name="colorOnPrimary">#002E63</color>
+    <color name="colorPrimaryContainer">#00438F</color>
+    <color name="colorOnPrimaryContainer">#D6E3FF</color>
+
+    <color name="colorSecondary">#BEC6DC</color>
+    <color name="colorOnSecondary">#283141</color>
+    <color name="colorSecondaryContainer">#3E4759</color>
+    <color name="colorOnSecondaryContainer">#DAE2F9</color>
+
+    <color name="colorTertiary">#DDBDE2</color>
+    <color name="colorOnTertiary">#3E2844</color>
+    <color name="colorTertiaryContainer">#573E5C</color>
+    <color name="colorOnTertiaryContainer">#FAD7FF</color>
+
+    <color name="colorError">#FFB4AB</color>
+    <color name="colorOnError">#690005</color>
+    <color name="colorErrorContainer">#93000A</color>
+    <color name="colorOnErrorContainer">#FFDAD6</color>
+
+    <color name="colorBackground">#111318</color>
+    <color name="colorOnBackground">#E1E2E9</color>
+    <color name="colorSurface">#111318</color>
+    <color name="colorOnSurface">#E1E2E9</color>
+    <color name="colorSurfaceVariant">#44474E</color>
+    <color name="colorOnSurfaceVariant">#C4C6D0</color>
+    <color name="colorOutline">#8E9099</color>
+    <color name="colorOutlineVariant">#44474E</color>
+
+    <color name="colorSurfaceContainerLowest">#0C0E12</color>
+    <color name="colorSurfaceContainerLow">#191C20</color>
+    <color name="colorSurfaceContainer">#1D2024</color>
+    <color name="colorSurfaceContainerHigh">#272A2E</color>
+    <color name="colorSurfaceContainerHighest">#323539</color>
+
+    <color name="colorInverseSurface">#E1E2E9</color>
+    <color name="colorInverseOnSurface">#2E3136</color>
+    <color name="colorInversePrimary">#1A5DB5</color>
+
+    <!-- Legacy named colors kept for compatibility with existing references. -->
+    <color name="colorDanger">#FFB4AB</color>
+    <color name="colorEmptyIcon">#44474E</color>
 </resources>

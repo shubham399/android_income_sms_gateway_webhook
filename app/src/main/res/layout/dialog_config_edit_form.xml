@@ -38,7 +38,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.SwitchCompat
+        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/input_sender_regex"
             style="@style/AppTheme.SwitchRow"
             android:layout_width="match_parent"
@@ -135,10 +135,10 @@
                     android:id="@+id/input_json_template"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
                     android:inputType="textMultiLine"
                     android:maxLines="10"
-                    android:textSize="12sp"
-                    android:typeface="monospace" />
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -153,10 +153,10 @@
                     android:id="@+id/input_json_headers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
                     android:inputType="textMultiLine"
                     android:maxLines="5"
-                    android:textSize="12sp"
-                    android:typeface="monospace" />
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -175,7 +175,7 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/input_ignore_ssl"
                 style="@style/AppTheme.SwitchRow"
                 android:layout_width="match_parent"
@@ -183,21 +183,21 @@
                 android:layout_marginTop="@dimen/spacing_small"
                 android:text="@string/label_ignore_ssl" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/input_chunked_mode"
                 style="@style/AppTheme.SwitchRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/label_chunked_mode" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/input_store_failed"
                 style="@style/AppTheme.SwitchRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/label_store_failed" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/input_local_mode"
                 style="@style/AppTheme.SwitchRow"
                 android:layout_width="match_parent"
@@ -210,7 +210,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/local_mode_info" />
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/id_sign_hmac_sha256"
                 style="@style/AppTheme.SwitchRow"
                 android:layout_width="match_parent"
@@ -229,7 +229,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_medium"
                 android:hint="@string/hint_sign_hmac_sha256_secret"
-                app:passwordToggleEnabled="true">
+                app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/id_sign_hmac_sha256_secret"

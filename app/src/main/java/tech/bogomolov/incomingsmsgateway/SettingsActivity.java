@@ -17,7 +17,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.color.DynamicColors;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.json.JSONException;
 
@@ -46,7 +49,10 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Android 12+: derive the M3 palette from the system wallpaper.
+        DynamicColors.applyToActivityIfAvailable(this);
         setContentView(R.layout.activity_settings);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -55,7 +61,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         HeartbeatSettings settings = HeartbeatSettings.load(this);
 
-        final SwitchCompat enabledCheckbox = findViewById(R.id.input_heartbeat_enabled);
+        final MaterialSwitch enabledCheckbox = findViewById(R.id.input_heartbeat_enabled);
         enabledCheckbox.setChecked(settings.isEnabled());
 
         final EditText urlInput = findViewById(R.id.input_heartbeat_url);
@@ -99,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
     // Warn before exporting: the file holds webhook URLs, custom headers and HMAC
     // secrets in plain text. Only on confirmation do we open the file picker.
     private void confirmExport() {
-        new AlertDialog.Builder(this)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.backup_export_warning_title)
                 .setMessage(R.string.backup_export_warning_message)
                 .setPositiveButton(R.string.btn_export, (dialog, which) -> startExport())
@@ -204,7 +210,7 @@ public class SettingsActivity extends AppCompatActivity {
     // error set) when invalid. URL/interval are only enforced when the heartbeat is
     // enabled, so a user can clear the toggle without filling a valid URL first.
     private HeartbeatSettings readSettings() {
-        final SwitchCompat enabledCheckbox = findViewById(R.id.input_heartbeat_enabled);
+        final MaterialSwitch enabledCheckbox = findViewById(R.id.input_heartbeat_enabled);
         boolean enabled = enabledCheckbox.isChecked();
 
         final EditText urlInput = findViewById(R.id.input_heartbeat_url);

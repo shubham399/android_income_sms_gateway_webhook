@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -28,6 +29,7 @@ import androidx.work.Data;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.BufferedReader;
@@ -57,7 +59,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Android 12+: derive the M3 palette from the system wallpaper.
+        DynamicColors.applyToActivityIfAvailable(this);
         setContentView(R.layout.activity_main);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         findViewById(R.id.backfill_cancel_button).setOnClickListener(v -> {
             String scope = BackfillState.getScope(this);
@@ -197,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_bar_syslogs) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context);
             View view = getLayoutInflater().inflate(R.layout.syslogs, null);
 
             String logs = "";
@@ -278,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
         String configKey = this.pendingBackfillKey;
         this.pendingBackfillKey = null;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         builder.setTitle(R.string.backfill_confirm_title);
         builder.setMessage(configKey == null
                 ? R.string.backfill_confirm_message
@@ -303,15 +308,23 @@ public class MainActivity extends AppCompatActivity {
         }
         WorkInfo active = null;
         if (infos != null) {
+            // Prefer the actually-executing batch: it is the one carrying live
+            // progress. BLOCKED future batches have no progress yet, so picking
+            // them first would show the indeterminate "scanning" bar.
+            WorkInfo running = null;
+            WorkInfo enqueued = null;
+            WorkInfo blocked = null;
             for (WorkInfo info : infos) {
                 WorkInfo.State state = info.getState();
-                if (state == WorkInfo.State.ENQUEUED
-                        || state == WorkInfo.State.RUNNING
-                        || state == WorkInfo.State.BLOCKED) {
-                    active = info;
-                    break;
+                if (state == WorkInfo.State.RUNNING && running == null) {
+                    running = info;
+                } else if (state == WorkInfo.State.ENQUEUED && enqueued == null) {
+                    enqueued = info;
+                } else if (state == WorkInfo.State.BLOCKED && blocked == null) {
+                    blocked = info;
                 }
             }
+            active = running != null ? running : (enqueued != null ? enqueued : blocked);
         }
         if (active == null) {
             bar.setVisibility(View.GONE);

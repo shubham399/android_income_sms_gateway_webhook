@@ -8,7 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
+
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
 
@@ -48,7 +49,7 @@ public class ListAdapter extends ArrayAdapter<ForwardingConfig> {
         TextView url = row.findViewById(R.id.text_url);
         url.setText(config.getUrl());
 
-        SwitchCompat switchSmsOnOff = row.findViewById(R.id.switch_sms_on_off);
+        MaterialSwitch switchSmsOnOff = row.findViewById(R.id.switch_sms_on_off);
         // Detach any listener a recycled row carries before syncing the state,
         // so setChecked doesn't save the previous row's config.
         switchSmsOnOff.setOnCheckedChangeListener(null);
@@ -100,7 +101,7 @@ public class ListAdapter extends ArrayAdapter<ForwardingConfig> {
         final int position = (int) view.getTag(R.id.delete_button);
         final ForwardingConfig config = listAdapter.getItem(position);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(view.getContext());
         builder.setTitle(R.string.delete_record);
         String asterisk = context.getString(R.string.asterisk);
         String any = context.getString(R.string.any);

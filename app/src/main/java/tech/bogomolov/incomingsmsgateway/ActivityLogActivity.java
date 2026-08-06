@@ -3,6 +3,7 @@ package tech.bogomolov.incomingsmsgateway;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +17,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.color.DynamicColors;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,7 +60,10 @@ public class ActivityLogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Android 12+: derive the M3 palette from the system wallpaper.
+        DynamicColors.applyToActivityIfAvailable(this);
         setContentView(R.layout.activity_log);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         emptyView = findViewById(R.id.log_empty);
         listView = findViewById(R.id.log_list);
@@ -145,6 +152,44 @@ public class ActivityLogActivity extends AppCompatActivity {
         return getString(R.string.log_event_queued);
     }
 
+    private int eventBackground(String event) {
+        if (ActivityLog.EVENT_SUCCESS.equals(event)) {
+            return R.drawable.bg_event_success;
+        }
+        if (ActivityLog.EVENT_RETRY.equals(event)) {
+            return R.drawable.bg_event_retry;
+        }
+        if (ActivityLog.EVENT_FAILED.equals(event)) {
+            return R.drawable.bg_event_failed;
+        }
+        if (ActivityLog.EVENT_BACKFILL.equals(event)) {
+            return R.drawable.bg_event_backfill;
+        }
+        return R.drawable.bg_event_queued;
+    }
+
+    private int eventTextColor(String event) {
+        if (ActivityLog.EVENT_SUCCESS.equals(event)) {
+            return themeColor(com.google.android.material.R.attr.colorOnPrimaryContainer);
+        }
+        if (ActivityLog.EVENT_RETRY.equals(event)) {
+            return themeColor(com.google.android.material.R.attr.colorOnTertiaryContainer);
+        }
+        if (ActivityLog.EVENT_FAILED.equals(event)) {
+            return themeColor(com.google.android.material.R.attr.colorOnErrorContainer);
+        }
+        if (ActivityLog.EVENT_BACKFILL.equals(event)) {
+            return themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant);
+        }
+        return themeColor(com.google.android.material.R.attr.colorOnSecondaryContainer);
+    }
+
+    private int themeColor(int attr) {
+        TypedValue value = new TypedValue();
+        getTheme().resolveAttribute(attr, value, true);
+        return value.data;
+    }
+
     private class LogAdapter extends ArrayAdapter<ActivityLog.LogEntry> {
         private final LayoutInflater inflater;
         private final Map<String, String> ruleLabels;
@@ -167,7 +212,15 @@ public class ActivityLogActivity extends AppCompatActivity {
             String stamp = TIME_FORMAT.format(new Date(entry.timestamp));
 
             TextView header = row.findViewById(R.id.log_header);
-            header.setText(stamp + " · " + eventLabel(entry.event) + " · " + entry.sender);
+            header.setText(stamp);
+
+            TextView chip = row.findViewById(R.id.log_event_chip);
+            chip.setText(eventLabel(entry.event));
+            chip.setBackgroundResource(eventBackground(entry.event));
+            chip.setTextColor(eventTextColor(entry.event));
+
+            TextView sender = row.findViewById(R.id.log_sender);
+            sender.setText(entry.sender);
 
             TextView ruleView = row.findViewById(R.id.log_rule);
             String rule = ruleLabels.get(entry.configKey);

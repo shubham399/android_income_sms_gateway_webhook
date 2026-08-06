@@ -1,48 +1,92 @@
 <resources>
 
-    <!-- Light theme. values-night redefines Base.AppTheme with a dark parent
-         and the palette flips through values-night/colors.xml. -->
-    <style name="Base.AppTheme" parent="Theme.MaterialComponents.Light">
+    <!-- Material 3 theme, light and dark via DayNight. minSdk 23, so the light
+         status-bar icon attribute lives here directly. DynamicColors replaces
+         the whole role palette on Android 12+; this palette is the fallback. -->
+    <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorStatusBar</item>
-        <item name="colorSecondary">@color/colorAccent</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/colorOnPrimaryContainer</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
+        <item name="colorSecondaryContainer">@color/colorSecondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/colorOnSecondaryContainer</item>
+        <item name="colorTertiary">@color/colorTertiary</item>
+        <item name="colorOnTertiary">@color/colorOnTertiary</item>
+        <item name="colorTertiaryContainer">@color/colorTertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/colorOnTertiaryContainer</item>
+        <item name="colorError">@color/colorError</item>
+        <item name="colorOnError">@color/colorOnError</item>
+        <item name="colorErrorContainer">@color/colorErrorContainer</item>
+        <item name="colorOnErrorContainer">@color/colorOnErrorContainer</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/colorOnSurface</item>
+        <item name="colorSurfaceVariant">@color/colorSurfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/colorOnSurfaceVariant</item>
+        <item name="colorOutline">@color/colorOutline</item>
+        <item name="colorOutlineVariant">@color/colorOutlineVariant</item>
+        <item name="colorSurfaceContainerLowest">@color/colorSurfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/colorSurfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/colorSurfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/colorSurfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/colorSurfaceContainerHighest</item>
+
         <item name="android:colorBackground">@color/colorBackground</item>
         <item name="android:windowBackground">@color/colorBackground</item>
-        <item name="actionBarStyle">@style/AppTheme.ActionBar</item>
+        <item name="android:statusBarColor">@color/colorSurfaceContainer</item>
+        <item name="android:windowLightStatusBar">@bool/light_status_bar</item>
     </style>
 
     <style name="AppTheme" parent="Base.AppTheme" />
 
-    <!-- Flat surface-colored app bar instead of the old colored DarkActionBar;
-         title/icon colors come from the theme's actionBarTheme. -->
-    <style name="AppTheme.ActionBar" parent="Widget.AppCompat.ActionBar.Solid">
-        <item name="background">@color/colorSurface</item>
-        <item name="elevation">3dp</item>
+    <!-- Top app bar: surface-tinted so it reads one tonal step above the page
+         background, with on-surface icons and title. -->
+    <style name="AppTheme.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/colorSurfaceContainer</item>
+        <item name="titleTextAppearance">?attr/textAppearanceTitleLarge</item>
+        <item name="titleTextColor">?attr/colorOnSurface</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
     </style>
 
+    <!-- M3 type roles, mapped so each helper/heading derives from the theme
+         instead of a hand-picked size. -->
     <style name="AppTheme.SectionHeader" parent="">
-        <item name="android:textSize">13sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">?attr/colorAccent</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="AppTheme.HelperText" parent="">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
         <item name="android:lineSpacingExtra">2sp</item>
     </style>
 
     <style name="AppTheme.SwitchRow" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:minHeight">48dp</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
-    <style name="AppTheme.TextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <!-- Filled text fields (M3 default) with helper text enabled. -->
+    <style name="AppTheme.TextInput" parent="Widget.Material3.TextInputLayout.FilledBox">
         <item name="helperTextEnabled">true</item>
+    </style>
+
+    <!-- Cards: filled variant sits on container-low, outlined variant draws a
+         1dp outlineVariant stroke; both share the 12dp corner radius. -->
+    <style name="AppTheme.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainerLow</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+    <style name="AppTheme.Card.Outlined" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+        <item name="strokeWidth">1dp</item>
     </style>
 
 </resources>

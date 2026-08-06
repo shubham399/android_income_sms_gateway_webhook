@@ -206,6 +206,10 @@ public class BackfillWorker extends Worker {
         String asterisk = context.getString(R.string.asterisk);
         List<ForwardingConfig> configs = ruleScope(configKey);
 
+        // Report the persisted count immediately so the progress bar never sits
+        // on "scanning" while this batch runs; it refreshes again at the end.
+        publishProgress(BackfillState.getDone(context), target);
+
         int dispatched = 0;
         long lastRowId = lastId;
         int rows = 0;

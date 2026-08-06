@@ -18,17 +18,16 @@
             android:id="@+id/syslogs_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorAccent"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/syslogs_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="11sp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:typeface="monospace" />
 
     </LinearLayout>
