@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace 'tech.bogomolov.incomingsmsgateway'
+    namespace 'com.relay.ws'
     compileSdkVersion 33
 
     defaultConfig {
-        applicationId "tech.bogomolov.incomingsmsgateway"
+        applicationId "com.relay.ws"
         minSdkVersion 23
         targetSdkVersion 33
         versionCode 19

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sms Forwarder</string>
+    <string name="app_name">Webhook Bridge</string>
     <string name="permission_needed">Set permission to access SMS to use this app.</string>
     <string name="empty_list_hint">No forwarding rules yet.\nTap + to add one.</string>
     <string name="input_url">https://example.com</string>
@@ -45,6 +45,13 @@
     <string name="any">Any</string>
     <string name="confirm_delete">Do you really want to delete "%s" record?</string>
     <string name="notification_channel">Default</string>
+    <string name="notification_channel_forwarded">SMS forwarded</string>
+    <string name="notification_forwarded_title">SMS sent to your webhook</string>
+    <string name="notification_forwarded_text">From %1$s: %2$s</string>
+    <string name="disclosure_title">How Webhook Bridge works</string>
+    <string name="disclosure_message">Webhook Bridge forwards incoming SMS to the webhook URL you configure. Only messages from senders you add to a rule (optionally narrowed by a text filter) are ever sent — everything else stays on this device and is never transmitted.\n\nEvery time an SMS is forwarded, this app shows a notification so you can see it happen. You can review, edit, or delete rules at any time.</string>
+    <string name="btn_got_it">Got it</string>
+    <string name="key_disclosure_preference">disclosure</string>
     <string name="menu_syslog">Syslog</string>
     <string name="menu_settings">Settings</string>
     <string name="title_settings">Settings</string>
@@ -78,19 +85,6 @@
     <string name="log_event_retry">Retry</string>
     <string name="log_event_failed">Failed</string>
     <string name="log_event_backfill">Backfill</string>
-    <string name="menu_backfill_sms">Backfill SMS</string>
-    <string name="backfill_confirm_title">Backfill SMS</string>
-    <string name="backfill_confirm_message">Forward all messages already in the inbox through the matching rules? This can send many requests.</string>
-    <string name="backfill_confirm_message_rule">Forward all messages already in the inbox that match this rule? This can send many requests.</string>
-    <string name="backfill_started">Backfill started in the background</string>
-    <string name="backfill_permission_needed">SMS read permission is required to backfill messages</string>
-    <string name="backfill_rule_unknown">Couldn\'t identify the rule for backfill</string>
     <string name="btn_start">Start</string>
-    <string name="btn_backfill">Backfill</string>
-    <string name="backfill_progress_title">Backfill in progress</string>
-    <string name="backfill_scanning">Scanning messages…</string>
-    <string name="backfill_scanning_count">Scanning messages… %1$d matched so far</string>
-    <string name="backfill_progress_detail">%1$d / %2$d messages forwarded</string>
-    <string name="backfill_cancel">Cancel backfill</string>
-    <string name="backfill_cancelled">Backfill cancelled</string>
+
 </resources>

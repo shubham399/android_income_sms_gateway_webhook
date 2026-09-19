@@ -1,4 +1,4 @@
-# Incoming SMS to URL forwarder
+# Webhook Bridge — SMS to URL forwarder
 
 This is a free, open-source Android app that automatically forwards incoming SMS messages to a specified URL as JSON via HTTP POST.
 * Forward SMS from specific numbers, all senders, or senders matching a regular expression.

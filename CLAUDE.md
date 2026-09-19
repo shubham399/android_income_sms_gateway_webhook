@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A free, open-source Android app (`tech.bogomolov.incomingsmsgateway`) that forwards incoming SMS to a user-configured URL as an HTTP POST with a JSON body. No backend, no accounts. The repo is intentionally a "stable, minimal" build — it is maintained but not actively expanded, so prefer small, focused changes over large refactors.
+A free, open-source Android app (`com.relay.ws`) that forwards incoming SMS to a user-configured URL as an HTTP POST with a JSON body. No backend, no accounts. The repo is intentionally a "stable, minimal" build — it is maintained but not actively expanded, so prefer small, focused changes over large refactors.
 
 ## Build & test
 
@@ -20,7 +20,7 @@ The project uses Gradle (wrapper committed, Gradle 9.4.1) and the Android plugin
 Most tests live in `app/src/androidTest/` and are **instrumented tests** — they run on a device/emulator, not the local JVM. There are also a few pure-JVM unit tests in `app/src/test/` (e.g. `ForwardingConfigPrepareMessageTest`) that run with `testDebugUnitTest`; prefer adding tests there when the logic under test touches no Android APIs. Run a single instrumented test class with:
 
 ```bash
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=tech.bogomolov.incomingsmsgateway.WebhookCallerTest
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.relay.ws.WebhookCallerTest
 ```
 
 CI runs both suites via GitHub Actions (`.github/workflows/tests.yml`): a fast JVM unit-test job, and an emulator job for the instrumented tests.

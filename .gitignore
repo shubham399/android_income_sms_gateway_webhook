@@ -25,3 +25,6 @@ output.json
 /captures
 .externalNativeBuild
 .cxx
+
+# codegraph local index (regenerated via `codegraph sync`)
+.codegraph/
