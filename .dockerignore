@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gradle
+.idea
+*.iml
+build
+app/build
+captures
+*.apk
+*.ap_
+*.aab
+local.properties
+.codegraph

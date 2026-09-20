@@ -34,7 +34,7 @@
     <string name="sender_recommendation">Используйте символ * для перехвата любого SMS-сообщения</string>
     <string name="label_sender_regex">Отправитель — регулярное выражение</string>
     <string name="sender_regex_info">Сопоставлять отправителя как regex (подстрока). Напр., BANK подходит для VM-BANK и AD-BANK. Символ * выше по-прежнему означает любого отправителя.</string>
-    <string name="json_template_recommendation">Доступные заполнители %text%, %from%, %sentStamp% (мс), %receivedStamp% (мс), %sim%, %version%, %battery%, %power%, %network%, %Regex=…% (извлечь из текста)</string>
+    <string name="json_template_recommendation" formatted="false">Доступные заполнители %text%, %from%, %sentStamp% (мс), %receivedStamp% (мс), %sim%, %version%, %battery%, %power%, %network%, %Regex=…% (извлечь из текста)</string>
     <string name="error_empty_sender">Пустой отправитель</string>
     <string name="error_empty_url">Пустой URL-адрес</string>
     <string name="error_wrong_url">Неверный URL-адрес</string>
